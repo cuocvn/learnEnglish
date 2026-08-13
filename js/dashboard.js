@@ -1,6 +1,6 @@
 import { auth, isDemoMode } from '../firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getUserWords, removeWordFromUserList, resetWordMastery, escapeHTML } from './firestore.js';
+import { getUserWords, removeWordFromUserList, resetWordMastery, escapeHTML, getUserProfile } from './firestore.js';
 import { logoutUser, showToast, getDemoUser } from './auth.js';
 
 // Decoupled toast system receiver
@@ -73,6 +73,10 @@ async function loadDashboardData() {
     savedWords = await getUserWords(currentUser.uid);
     updateStatistics();
     renderWordsList();
+    
+    // Fetch profile and render 100-day attendance grid
+    const profile = await getUserProfile(currentUser.uid);
+    renderAttendanceGrid(profile);
   } catch (err) {
     console.error("Failed to load dashboard data:", err);
     showToast("Không thể tải danh sách từ vựng. Vui lòng thử lại!", "error");
@@ -279,4 +283,50 @@ function renderEmptyState() {
       </a>
     </div>
   `;
+}
+
+// 4. Render 100-Day Attendance Grid (GitHub style)
+function renderAttendanceGrid(profile) {
+  const gridContainer = document.getElementById('attendance-grid-container');
+  const streakBadge = document.getElementById('attendance-streak-badge');
+  
+  if (!gridContainer || !streakBadge) return;
+  
+  gridContainer.innerHTML = '';
+  
+  // Calculate relative day indexes
+  const checkedDays = new Set();
+  let completedDaysCount = 0;
+  
+  if (profile && profile.startDate && profile.attendanceDates) {
+    const start = new Date(profile.startDate + 'T00:00:00');
+    
+    profile.attendanceDates.forEach(dateStr => {
+      const current = new Date(dateStr + 'T00:00:00');
+      const diffTime = current - start;
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      if (diffDays >= 1 && diffDays <= 100) {
+        checkedDays.add(diffDays);
+      }
+    });
+    
+    completedDaysCount = checkedDays.size;
+  }
+  
+  streakBadge.textContent = `Đã tích lũy: ${completedDaysCount}/100 ngày`;
+  
+  // Batch updates using DocumentFragment for maximum performance (avoids layout repaints)
+  const fragment = document.createDocumentFragment();
+  for (let i = 1; i <= 100; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'attendance-cell';
+    if (checkedDays.has(i)) {
+      cell.classList.add('checked');
+    }
+    cell.textContent = i;
+    cell.title = checkedDays.has(i) ? `Ngày ${i}: Đã điểm danh ✅` : `Ngày ${i}: Chưa điểm danh`;
+    fragment.appendChild(cell);
+  }
+  
+  gridContainer.appendChild(fragment);
 }

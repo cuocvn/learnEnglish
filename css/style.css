@@ -1233,3 +1233,45 @@ button:disabled {
   will-change: transform, opacity;
 }
 
+/* Attendance Contribution Grid */
+.attendance-scroll-container {
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.attendance-grid {
+  display: grid;
+  grid-template-columns: repeat(20, minmax(32px, 1fr));
+  gap: 8px;
+  min-width: 780px;
+  padding: 5px;
+}
+
+.attendance-cell {
+  background-color: var(--border-color);
+  color: var(--text-muted);
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  user-select: none;
+  cursor: default;
+}
+
+.attendance-cell:hover {
+  transform: scale(1.12);
+  box-shadow: var(--shadow-sm);
+}
+
+.attendance-cell.checked {
+  background-color: var(--secondary-color);
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 184, 148, 0.25);
+}
+

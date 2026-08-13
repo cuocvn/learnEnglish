@@ -8,7 +8,8 @@ import {
   getDocs, 
   updateDoc, 
   deleteDoc, 
-  serverTimestamp 
+  serverTimestamp,
+  arrayUnion 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // HTML Sanitization helper to prevent Stored XSS
@@ -74,6 +75,11 @@ export async function addWordToUserList(uid, wordInfo) {
     const wordsMap = getLocalWords(uid);
     wordsMap[wordId] = { id: wordId, ...wordData };
     saveLocalWords(uid, wordsMap);
+    try {
+      await recordAttendance(uid);
+    } catch (e) {
+      console.warn("Failed to record local attendance:", e);
+    }
     return wordsMap[wordId];
   }
 
@@ -83,6 +89,11 @@ export async function addWordToUserList(uid, wordInfo) {
       ...wordData,
       last_practiced: serverTimestamp()
     });
+    try {
+      await recordAttendance(uid);
+    } catch (e) {
+      console.warn("Failed to record firebase attendance:", e);
+    }
     return { id: wordId, ...wordData };
   } catch (err) {
     console.error("Error adding word to Firestore:", err);
@@ -269,5 +280,85 @@ export async function syncLocalWordsToFirestore(uid) {
       }
     });
     window.dispatchEvent(event);
+  }
+}
+
+// 7. Record check-in attendance automatically when adding a word
+export async function recordAttendance(uid) {
+  if (!uid) return null;
+  const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
+
+  if (isDemoMode || uid === 'demo_user') {
+    const profileKey = `vocab_profile_${uid}`;
+    const profile = JSON.parse(localStorage.getItem(profileKey)) || {
+      startDate: todayStr,
+      attendanceDates: []
+    };
+
+    if (!profile.startDate) {
+      profile.startDate = todayStr;
+    }
+    if (!profile.attendanceDates.includes(todayStr)) {
+      profile.attendanceDates.push(todayStr);
+    }
+    localStorage.setItem(profileKey, JSON.stringify(profile));
+    return profile;
+  }
+
+  try {
+    const userDocRef = doc(db, "users", uid);
+    const docSnap = await getDoc(userDocRef);
+    
+    const updates = {
+      attendanceDates: arrayUnion(todayStr)
+    };
+
+    if (!docSnap.exists() || !docSnap.data().startDate) {
+      updates.startDate = todayStr;
+    }
+
+    await setDoc(userDocRef, updates, { merge: true });
+    return updates;
+  } catch (err) {
+    console.error("Error recording attendance in Firestore:", err);
+    throw err;
+  }
+}
+
+// 8. Fetch user profile (startDate and attendance dates list)
+export async function getUserProfile(uid) {
+  if (!uid) return null;
+  const todayStr = new Date().toLocaleDateString('en-CA');
+
+  if (isDemoMode || uid === 'demo_user') {
+    const profileKey = `vocab_profile_${uid}`;
+    let profile = JSON.parse(localStorage.getItem(profileKey));
+    if (!profile) {
+      profile = {
+        startDate: todayStr,
+        attendanceDates: []
+      };
+      localStorage.setItem(profileKey, JSON.stringify(profile));
+    }
+    return profile;
+  }
+
+  try {
+    const userDocRef = doc(db, "users", uid);
+    const docSnap = await getDoc(userDocRef);
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      return {
+        startDate: data.startDate || todayStr,
+        attendanceDates: data.attendanceDates || []
+      };
+    } else {
+      const defaultProfile = { startDate: todayStr, attendanceDates: [] };
+      await setDoc(userDocRef, defaultProfile);
+      return defaultProfile;
+    }
+  } catch (err) {
+    console.error("Error getting user profile:", err);
+    return { startDate: todayStr, attendanceDates: [] };
   }
 }
