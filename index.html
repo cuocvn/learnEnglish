@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trang chủ | App Học Từ Vựng Tiếng Anh</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <div class="logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <span>Cute Vocab</span>
+      </a>
+
+      <ul class="nav-links">
+        <li class="active"><a href="#search" id="tab-search"><i class="fa-solid fa-magnifying-glass"></i> <span>Tra từ</span></a></li>
+        <li><a href="#practice" id="tab-practice"><i class="fa-solid fa-graduation-cap"></i> <span>Ôn tập</span></a></li>
+        <li><a href="dashboard.html"><i class="fa-solid fa-chart-line"></i> <span>Tiến độ</span></a></li>
+      </ul>
+
+      <div class="user-profile" id="user-profile-header">
+        <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=vocab" alt="Avatar" class="user-avatar" id="header-avatar">
+        <span class="user-name" id="header-username">Học viên</span>
+        <button class="btn-logout" id="btn-logout" title="Đăng xuất">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content Container -->
+  <main class="container main-layout">
+    
+    <!-- 1. SEARCH & LEARN PANEL -->
+    <section class="view-panel active" id="search-panel">
+      <div class="search-container">
+        <h1 class="search-title">Tra cứu <span>Từ vựng</span> 📖</h1>
+        <p style="color: var(--text-muted); margin-bottom: 25px;">Nhập từ tiếng Anh để tra nghĩa, phát âm và lưu vào danh sách học.</p>
+        
+        <div class="search-wrapper">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" class="search-input" id="search-input" placeholder="Nhập từ cần tra (ví dụ: beautiful, happy...)" autocomplete="off">
+          <button class="btn btn-primary btn-search" id="btn-search"><i class="fa-solid fa-magnifying-glass"></i></button>
+          
+          <!-- Autocomplete Suggestions List -->
+          <div class="suggestions-list" id="suggestions-list"></div>
+        </div>
+      </div>
+
+      <!-- Result Rendering Area -->
+      <div id="result-area">
+        <!-- Rendered dynamically by app.js -->
+        <div style="text-align: center; color: var(--text-muted); margin-top: 50px;">
+          <i class="fa-solid fa-circle-question" style="font-size: 3rem; margin-bottom: 15px; color: var(--primary-light);"></i>
+          <h3>Chưa có từ nào được tìm kiếm</h3>
+          <p>Nhập từ vựng ở ô tìm kiếm phía trên để bắt đầu học nhé!</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. PRACTICE MODE PANEL -->
+    <section class="view-panel" id="practice-panel">
+      <div class="practice-container">
+        <h1 style="text-align: center; margin-bottom: 20px;">Luyện tập Hàng ngày 💪</h1>
+        
+        <!-- Practice Card (renders dynamically) -->
+        <div id="practice-card-container">
+          <!-- Loaded by app.js -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Made with ❤️ by Cute Vocab Team © 2026. All rights reserved.</p>
+  </footer>
+
+  <!-- Toast Notification System -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Confetti Canvas Library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <!-- Module Script Imports -->
+  <script type="module" src="./firebase-config.js"></script>
+  <script type="module" src="js/auth.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
