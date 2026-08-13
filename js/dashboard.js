@@ -294,6 +294,9 @@ function renderAttendanceGrid(profile) {
   
   gridContainer.innerHTML = '';
   
+  const checkedDays = new Set();
+  let completedDaysCount = 0;
+  
   let start = new Date();
   if (profile && profile.startDate) {
     const parts = profile.startDate.split('-');
