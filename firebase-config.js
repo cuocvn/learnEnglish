@@ -32,7 +32,17 @@ export const db = initializeFirestore(app, {
 });
 
 export const googleProvider = new GoogleAuthProvider();
-export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
+
+// Initialize Analytics safely inside a try-catch to prevent adblockers from blocking initialization
+let analyticsInstance = null;
+try {
+  if (typeof window !== 'undefined' && firebaseConfig.measurementId) {
+    analyticsInstance = getAnalytics(app);
+  }
+} catch (err) {
+  console.warn("Firebase Analytics could not be initialized (likely blocked by client browser or adblocker):", err.message);
+}
+export const analytics = analyticsInstance;
 
 // Firebase is now fully configured, so Demo mode defaults to false
 export const isDemoMode = false;

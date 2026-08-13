@@ -1243,35 +1243,57 @@ button:disabled {
 
 .attendance-grid {
   display: grid;
-  grid-template-columns: repeat(20, minmax(32px, 1fr));
+  grid-template-columns: repeat(20, minmax(34px, 1fr));
   gap: 8px;
-  min-width: 780px;
-  padding: 5px;
+  min-width: 800px;
+  padding: 8px;
 }
 
 .attendance-cell {
-  background-color: var(--border-color);
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
   color: var(--text-muted);
+  font-family: 'Quicksand', 'Nunito', sans-serif;
   aspect-ratio: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 0.85rem;
-  border-radius: var(--radius-sm);
-  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border-radius: 8px;
+  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
   user-select: none;
-  cursor: default;
+  cursor: pointer;
 }
 
 .attendance-cell:hover {
-  transform: scale(1.12);
-  box-shadow: var(--shadow-sm);
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  border-color: var(--secondary-color);
+  color: var(--secondary-color);
 }
 
 .attendance-cell.checked {
-  background-color: var(--secondary-color);
+  background: linear-gradient(135deg, var(--secondary-color), #20bf6b);
+  border: none;
   color: white;
-  box-shadow: 0 2px 8px rgba(0, 184, 148, 0.25);
+  box-shadow: 0 3px 10px rgba(0, 184, 148, 0.3);
+  animation: cellPop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.attendance-cell.checked:hover {
+  color: white;
+  box-shadow: 0 5px 15px rgba(0, 184, 148, 0.45);
+}
+
+@keyframes cellPop {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
