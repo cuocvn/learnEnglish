@@ -298,9 +298,12 @@ function renderAttendanceGrid(profile) {
   const checkedDays = new Set();
   let completedDaysCount = 0;
   
+  let start = new Date();
+  if (profile && profile.startDate) {
+    start = new Date(profile.startDate + 'T00:00:00');
+  }
+
   if (profile && profile.startDate && profile.attendanceDates) {
-    const start = new Date(profile.startDate + 'T00:00:00');
-    
     profile.attendanceDates.forEach(dateStr => {
       const current = new Date(dateStr + 'T00:00:00');
       const diffTime = current - start;
@@ -324,7 +327,17 @@ function renderAttendanceGrid(profile) {
       cell.classList.add('checked');
     }
     cell.textContent = i;
-    cell.title = checkedDays.has(i) ? `Ngày ${i}: Đã điểm danh ✅` : `Ngày ${i}: Chưa điểm danh`;
+    
+    // Calculate calendar date for this Day cell index (i)
+    const cellDate = new Date(start.getTime() + (i - 1) * 24 * 60 * 60 * 1000);
+    const day = String(cellDate.getDate()).padStart(2, '0');
+    const month = String(cellDate.getMonth() + 1).padStart(2, '0');
+    const year = cellDate.getFullYear();
+    const dateFormatted = `${day}/${month}/${year}`;
+    
+    const status = checkedDays.has(i) ? 'Đã điểm danh ✅' : 'Chưa điểm danh';
+    cell.title = `Ngày ${i} (${dateFormatted}): ${status}`;
+    
     fragment.appendChild(cell);
   }
   
