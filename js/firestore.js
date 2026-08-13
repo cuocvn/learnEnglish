@@ -51,8 +51,9 @@ export async function getUserWords(uid) {
     });
     return words;
   } catch (err) {
-    console.error("Error getting user words from Firestore:", err);
-    throw err;
+    console.warn("Firestore error in getUserWords, falling back to LocalStorage:", err.message);
+    const wordsMap = getLocalWords(uid);
+    return Object.values(wordsMap);
   }
 }
 
@@ -117,8 +118,11 @@ export async function removeWordFromUserList(uid, word) {
     await deleteDoc(wordDocRef);
     return true;
   } catch (err) {
-    console.error("Error deleting word from Firestore:", err);
-    throw err;
+    console.warn("Firestore error in removeWordFromUserList, falling back to LocalStorage:", err.message);
+    const wordsMap = getLocalWords(uid);
+    delete wordsMap[wordId];
+    saveLocalWords(uid, wordsMap);
+    return true;
   }
 }
 
@@ -159,7 +163,10 @@ export async function updateWordProgress(uid, word, isCorrect) {
     
     if (!docSnap.exists()) {
       console.warn("Word doc not found in Firestore:", wordId);
-      return null;
+      const wordsMap = getLocalWords(uid);
+      const wordItem = wordsMap[wordId];
+      if (!wordItem) return null;
+      return wordItem;
     }
 
     const data = docSnap.data();
@@ -180,8 +187,26 @@ export async function updateWordProgress(uid, word, isCorrect) {
     await updateDoc(wordDocRef, updates);
     return { id: wordId, ...data, ...updates, last_practiced: timestamp };
   } catch (err) {
-    console.error("Error updating word progress in Firestore:", err);
-    throw err;
+    console.warn("Firestore error in updateWordProgress, falling back to LocalStorage:", err.message);
+    const wordsMap = getLocalWords(uid);
+    const wordItem = wordsMap[wordId];
+    if (!wordItem) return null;
+
+    const currentMastery = wordItem.mastery || 0;
+    const currentCorrect = wordItem.correct_count || 0;
+    const currentWrong = wordItem.wrong_count || 0;
+
+    let newMastery = isCorrect ? currentMastery + 10 : currentMastery - 10;
+    newMastery = Math.max(0, Math.min(100, newMastery));
+
+    wordItem.mastery = newMastery;
+    wordItem.correct_count = isCorrect ? currentCorrect + 1 : currentCorrect;
+    wordItem.wrong_count = !isCorrect ? currentWrong + 1 : currentWrong;
+    wordItem.last_practiced = timestamp;
+
+    wordsMap[wordId] = wordItem;
+    saveLocalWords(uid, wordsMap);
+    return wordItem;
   }
 }
 
@@ -214,8 +239,17 @@ export async function resetWordMastery(uid, word) {
     await updateDoc(wordDocRef, updates);
     return updates;
   } catch (err) {
-    console.error("Error resetting word mastery:", err);
-    throw err;
+    console.warn("Firestore error in resetWordMastery, falling back to LocalStorage:", err.message);
+    const wordsMap = getLocalWords(uid);
+    if (wordsMap[wordId]) {
+      wordsMap[wordId].mastery = 0;
+      wordsMap[wordId].correct_count = 0;
+      wordsMap[wordId].wrong_count = 0;
+      wordsMap[wordId].last_practiced = timestamp;
+      saveLocalWords(uid, wordsMap);
+      return wordsMap[wordId];
+    }
+    return null;
   }
 }
 
