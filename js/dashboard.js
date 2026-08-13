@@ -294,18 +294,27 @@ function renderAttendanceGrid(profile) {
   
   gridContainer.innerHTML = '';
   
-  // Calculate relative day indexes
-  const checkedDays = new Set();
-  let completedDaysCount = 0;
-  
   let start = new Date();
   if (profile && profile.startDate) {
-    start = new Date(profile.startDate + 'T00:00:00');
+    const parts = profile.startDate.split('-');
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      start = new Date(year, month, day);
+    }
   }
 
   if (profile && profile.startDate && profile.attendanceDates) {
     profile.attendanceDates.forEach(dateStr => {
-      const current = new Date(dateStr + 'T00:00:00');
+      let current = start;
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+        current = new Date(year, month, day);
+      }
       const diffTime = current - start;
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
       if (diffDays >= 1 && diffDays <= 100) {
@@ -328,8 +337,8 @@ function renderAttendanceGrid(profile) {
     }
     cell.textContent = i;
     
-    // Calculate calendar date for this Day cell index (i)
-    const cellDate = new Date(start.getTime() + (i - 1) * 24 * 60 * 60 * 1000);
+    // Calculate calendar date for this Day cell index (i) safely, preventing timezone/DST bugs
+    const cellDate = new Date(start.getFullYear(), start.getMonth(), start.getDate() + (i - 1));
     const day = String(cellDate.getDate()).padStart(2, '0');
     const month = String(cellDate.getMonth() + 1).padStart(2, '0');
     const year = cellDate.getFullYear();
